@@ -18,37 +18,37 @@ The rebalancing rules are all about keeping these jars at their desired levels a
 
 Here's the core rebalancing section from simulateThreeBucketStrategy_Detailed. This happens after you've taken money out for the year's expenses and after each bucket's investments have had their yearly growth (or shrinkage).
 
-// SCENE: End of the year. We've paid our bills (withdrawals are done).
-// Our Cash Jar (B1), Steady Savers Jar (B2), and Growth Engine Jar (B3)
-// have all seen some action from market returns.
-// `b3MarketReturnThisYear` tells us if our Growth Engine Jar (B3 - Stocks) had a good year (positive return) or a bad year (negative return).
-// This is a VERY important piece of information for our decisions!
-
-// First, let's figure out the ideal dollar amount for our Cash Jar (B1) and Steady Savers Jar (B2).
-// `yearWithdrawal` is the amount of money we plan to spend *next* year (it includes inflation).
-// `params.bucket1Years` is how many years of spending we want in our Cash Jar (e.g., 3 years).
-const b1TargetDollar = params.bucket1Years * yearWithdrawal;
-// `params.bucket2YearsBonds` is how many years of spending we want in our Steady Savers Jar (e.g., 5 years).
-const b2TargetDollar = params.bucket2YearsBonds * yearWithdrawal;
-
-// Let's make some notes in our logbook for this year's rebalancing.
-// We'll record the target amounts and any money moved.
-logEntry.b1TargetAmount = b1TargetDollar;
-logEntry.b2TargetAmount = b2TargetDollar;
-logEntry.b1RefillAmount = 0; // How much we added to B1
-logEntry.b1RefillSource = 'N/A'; // Where did the refill for B1 come from?
-logEntry.b2TransferToB1 = 0; // How much B2 gave to B1
-logEntry.b3TransferToB1 = 0; // How much B3 gave to B1 (spoiler: this strategy avoids this if B3 is down)
-logEntry.b2RebalanceTransfer = 0; // Net change in B2 from rebalancing (not counting B1 refill)
-logEntry.b3RebalanceTransfer = 0; // Net change in B3 from rebalancing
+    // SCENE: End of the year. We've paid our bills (withdrawals are done).
+    // Our Cash Jar (B1), Steady Savers Jar (B2), and Growth Engine Jar (B3)
+    // have all seen some action from market returns.
+    // `b3MarketReturnThisYear` tells us if our Growth Engine Jar (B3 - Stocks) had a good year (positive return) or a bad year (negative return).
+    // This is a VERY important piece of information for our decisions!
+    
+    // First, let's figure out the ideal dollar amount for our Cash Jar (B1) and Steady Savers Jar (B2).
+    // `yearWithdrawal` is the amount of money we plan to spend *next* year (it includes inflation).
+    // `params.bucket1Years` is how many years of spending we want in our Cash Jar (e.g., 3 years).
+    const b1TargetDollar = params.bucket1Years * yearWithdrawal;
+    // `params.bucket2YearsBonds` is how many years of spending we want in our Steady Savers Jar (e.g., 5 years).
+    const b2TargetDollar = params.bucket2YearsBonds * yearWithdrawal;
+    
+    // Let's make some notes in our logbook for this year's rebalancing.
+    // We'll record the target amounts and any money moved.
+    logEntry.b1TargetAmount = b1TargetDollar;
+    logEntry.b2TargetAmount = b2TargetDollar;
+    logEntry.b1RefillAmount = 0; // How much we added to B1
+    logEntry.b1RefillSource = 'N/A'; // Where did the refill for B1 come from?
+    logEntry.b2TransferToB1 = 0; // How much B2 gave to B1
+    logEntry.b3TransferToB1 = 0; // How much B3 gave to B1 (spoiler: this strategy avoids this if B3 is down)
+    logEntry.b2RebalanceTransfer = 0; // Net change in B2 from rebalancing (not counting B1 refill)
+    logEntry.b3RebalanceTransfer = 0; // Net change in B3 from rebalancing
 
 // --- THE BIG DECISION POINT: How did the Stock Market (Bucket 3) do this year? ---
 
-if (b3MarketReturnThisYear >= 0) {
-    // ----- CONDITION 1: STOCKS (B3) WERE UP or FLAT! 🎉 -----
-    // This is good news! We feel more comfortable moving money around.
-    // We're going to do a "Holistic Re-allocation" - basically, re-sort all our money
-    // across the three buckets to get them to their ideal levels.
+    if (b3MarketReturnThisYear >= 0) {
+        // ----- CONDITION 1: STOCKS (B3) WERE UP or FLAT! 🎉 -----
+        // This is good news! We feel more comfortable moving money around.
+        // We're going to do a "Holistic Re-allocation" - basically, re-sort all our money
+        // across the three buckets to get them to their ideal levels.
 
     logEntry.reallocStrategy = "Market Up/Flat: Holistic"; // Note our strategy
 
@@ -84,11 +84,11 @@ if (b3MarketReturnThisYear >= 0) {
     logEntry.b2RebalanceTransfer = bucket2Balance - b2Old;
     logEntry.b3RebalanceTransfer = bucket3Balance - b3Old;
 
-} else {
-    // ----- CONDITION 2: STOCKS (B3) WERE DOWN! 😟 -----
-    // Uh oh, the stock market didn't do well. We need to be more careful
-    // and try to avoid selling stocks (B3) when they are low if we can.
-    // This is where the "bucket" idea really shines.
+    } else {
+        // ----- CONDITION 2: STOCKS (B3) WERE DOWN! 😟 -----
+        // Uh oh, the stock market didn't do well. We need to be more careful
+        // and try to avoid selling stocks (B3) when they are low if we can.
+        // This is where the "bucket" idea really shines.
 
     logEntry.reallocStrategy = "Market Down: Conditional"; // Note our cautious strategy
 
@@ -138,17 +138,17 @@ if (b3MarketReturnThisYear >= 0) {
     // Log the net changes for B2 and B3 from this specific "B2 overflow" rule.
     logEntry.b2RebalanceTransfer = bucket2Balance - b2OldForRebalance;
     logEntry.b3RebalanceTransfer = bucket3Balance - b3OldForRebalance;
-}
-
-// Make sure no bucket goes below zero (just a safety check).
-bucket1Balance = Math.max(0, bucket1Balance);
-bucket2Balance = Math.max(0, bucket2Balance);
-bucket3Balance = Math.max(0, bucket3Balance);
-
-// Finally, log the ending balances of each bucket after all these decisions.
-logEntry.b1End = bucket1Balance;
-logEntry.b2End = bucket2Balance;
-logEntry.b3End = bucket3Balance;
+    }
+    
+    // Make sure no bucket goes below zero (just a safety check).
+    bucket1Balance = Math.max(0, bucket1Balance);
+    bucket2Balance = Math.max(0, bucket2Balance);
+    bucket3Balance = Math.max(0, bucket3Balance);
+    
+    // Finally, log the ending balances of each bucket after all these decisions.
+    logEntry.b1End = bucket1Balance;
+    logEntry.b2End = bucket2Balance;
+    logEntry.b3End = bucket3Balance;
 
 
 -----------------------------------------------
@@ -158,21 +158,21 @@ TOTAL PORTFOLIO REBALANCE METHODOLOGY EXPLAINED
 Now, let's dive into the rebalancing magic for the Total Return strategy! It's actually quite straightforward once you see it step-by-step. Imagine you're a diligent portfolio manager for yourself, and at the end of each year, you want to make sure your investments are still in the right proportions.
 
 Here's the part of the code in simulateTotalReturnStrategy_Detailed that handles this annual check-up and adjustment:
-
-// SCENE: This happens at the end of each simulated year,
-// AFTER your money has been withdrawn for living expenses,
-// AND AFTER your stocks and bonds have grown (or shrunk) based on market returns.
-
-// Initialize a couple of notes in our logbook for this year.
-// We'll write down how much stock and bond we *actually* bought or sold during rebalancing.
-// For now, we assume we haven't bought/sold anything for rebalancing yet, so they are zero.
-logEntry.rebalanceStockAmount = 0;
-logEntry.rebalanceBondAmount = 0;
-
-// First, a common-sense check: Is there any money left in the portfolio?
-// If the portfolio balance is zero (or less, which shouldn't happen but good to be safe),
-// there's nothing to rebalance! So, we only do the next steps if there's money.
-// if (portfolioBalance > 0) {
+    
+    // SCENE: This happens at the end of each simulated year,
+    // AFTER your money has been withdrawn for living expenses,
+    // AND AFTER your stocks and bonds have grown (or shrunk) based on market returns.
+    
+    // Initialize a couple of notes in our logbook for this year.
+    // We'll write down how much stock and bond we *actually* bought or sold during rebalancing.
+    // For now, we assume we haven't bought/sold anything for rebalancing yet, so they are zero.
+    logEntry.rebalanceStockAmount = 0;
+    logEntry.rebalanceBondAmount = 0;
+    
+    // First, a common-sense check: Is there any money left in the portfolio?
+    // If the portfolio balance is zero (or less, which shouldn't happen but good to be safe),
+    // there's nothing to rebalance! So, we only do the next steps if there's money.
+    // if (portfolioBalance > 0) {
 
     // GOAL: We want our stocks to be, say, 60% of our total money,
     // and bonds to be 40%. This is our "target allocation".
@@ -223,7 +223,8 @@ logEntry.rebalanceBondAmount = 0;
     // And that's it! Our portfolio is now perfectly back to our desired 60/40 (or whatever) split.
     // We've "taken profits" from the asset that did well and "bought the dip" in the asset that did less well,
     // bringing everything back in line.
-// If the `if (portfolioBalance > 0)` was false, all these steps are skipped.
+    }
+    // If the `if (portfolioBalance > 0)` was false, all these steps are skipped.
 
 
 -----------------------------------------------
