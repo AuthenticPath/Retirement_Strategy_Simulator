@@ -295,3 +295,285 @@ COLUMN HEADERS FOR TOTAL RETURN STRATEGY EXPLAINED
 | **Bond End**           | Bond bucket balance at the **end** of the year.                                                |
 | **End Port.**          | Total portfolio value at the **end** of the year (sum of stocks + bonds).                      |
 | **Next Yr W/D**        | How much your annual withdrawal will be next year (inflation-adjusted).                        |
+
+------------------------------------------------------------------------------------------------
+CODE REVIEW - IS THE CODE CORRECT? (AS REVIEWED BY GOOGLE GEMINI 2.5 PRO 05-06 MODEL - FLAGSHIP
+------------------------------------------------------------------------------------------------
+
+
+Okay, I've reviewed the HTML and JavaScript code, focusing on the "Three-Bucket Strategy" and the "Total Return Strategy." Here's my analysis comparing the written rules to the code implementation:
+
+Overall, the code for both strategies appears to accurately reflect the written rules and common interpretations of these strategies. The level of detail in the 3-Bucket rules is well-matched by the code's logic.
+
+Here's a breakdown:
+
+I. Three-Bucket Strategy
+
+The written rules for the Three-Bucket Strategy are quite specific. Let's compare them point by point with the simulateThreeBucketStrategy_Detailed function:
+
+Initial Setup:
+
+Rule: Bucket 1 (Cash) for target years of expenses, then Bucket 2 (Bonds) for its target years, rest to Bucket 3 (Stocks).
+
+Code:
+
+    const bucket1TargetInitial = params.bucket1Years * currentAnnualWithdrawal;
+    let bucket1Balance = Math.min(params.startBalance, bucket1TargetInitial);
+    const remainingAfterB1 = Math.max(0, params.startBalance - bucket1Balance);
+    const bucket2TargetInitial = params.bucket2YearsBonds * currentAnnualWithdrawal;
+    let bucket2Balance = Math.min(remainingAfterB1, bucket2TargetInitial);
+    let bucket3Balance = Math.max(0, remainingAfterB1 - bucket2Balance);
+
+
+Assessment: Accurate. The code correctly prioritizes filling Bucket 1, then Bucket 2, with the remainder going to Bucket 3 from the startBalance.
+
+Annual Withdrawal:
+
+Rule: "Each year starts with a withdrawal." Implicitly, from B1, then B2, then B3.
+
+Code:
+
+    const fromB1Withdraw = Math.min(withdrawalNeeded, bucket1Balance);
+    bucket1Balance -= fromB1Withdraw;
+    withdrawalNeeded -= fromB1Withdraw;
+    // ...
+    if (withdrawalNeeded > 0) {
+        const fromB2Withdraw = Math.min(withdrawalNeeded, bucket2Balance);
+        // ...
+    }
+    if (withdrawalNeeded > 0) {
+        const fromB3Withdraw = Math.min(withdrawalNeeded, bucket3Balance);
+        // ...
+    }
+    IGNORE_WHEN_COPYING_START
+    content_copy
+    download
+    Use code with caution.
+    JavaScript
+    IGNORE_WHEN_COPYING_END
+
+Assessment: Accurate. Withdrawals are correctly sourced sequentially from B1, then B2, then B3.
+
+Market Growth:
+
+Rule: Buckets grow/shrink based on market performance after withdrawal.
+
+Code:
+
+    bucket1Balance *= 1 + logEntry.b1ReturnPercent;
+    bucket2Balance *= 1 + logEntry.b2ReturnPercent;
+    bucket3Balance *= 1 + logEntry.b3ReturnPercent;
+    IGNORE_WHEN_COPYING_START
+    content_copy
+    download
+    Use code with caution.
+    JavaScript
+    IGNORE_WHEN_COPYING_END
+
+Assessment: Accurate. Each bucket's balance is adjusted by its respective generated return.
+
+Rebalancing/Refill - Rule 2: Stocks Up or Flat (B3 Return >= 0%):
+
+Rule: "Rebalance the whole portfolio: Fill Bucket 1 (Cash) to cover your target number of years... Then fill Bucket 2 (Bonds) to its target... Put the rest into Bucket 3 (Stocks)." The targets are based on current annual expenses.
+
+Code:
+
+    if (logEntry.b3AnnualReturnForDecision >= 0) {
+        // ...
+        bucket1Balance = Math.min(totalPortfolioAfterGrowth, b1TargetDollar);
+        let remainingForB2B3 = totalPortfolioAfterGrowth - bucket1Balance;
+        bucket2Balance = Math.min(remainingForB2B3, b2TargetDollar);
+        bucket3Balance = remainingForB2B3 - bucket2Balance;
+    }
+    IGNORE_WHEN_COPYING_START
+    content_copy
+    download
+    Use code with caution.
+    JavaScript
+    IGNORE_WHEN_COPYING_END
+    
+    where b1TargetDollar = params.bucket1Years * yearWithdrawal and b2TargetDollar = params.bucket2YearsBonds * yearWithdrawal. (yearWithdrawal is the current year's withdrawal amount before inflation for the next year).
+
+Assessment: Accurate. The code correctly performs a holistic rebalance, setting B1 to its target, then B2 to its target from the total grown portfolio, with the remainder to B3.
+
+Rebalancing/Refill - Rule 3: Stocks Down (B3 Return < 0%):
+
+Rule 3a (B1 Refill): "First, check if Bucket 1 is below its minimum threshold. If it is, refill it using only Bucket 2." (Implicitly, up to B1's target). "Don’t sell stocks to do this."
+
+Code:
+
+    else { // Market Down
+        const bucket1RefillTriggerLevel = params.bucket1RefillThresholdYears * yearWithdrawal;
+        if (bucket1Balance < bucket1RefillTriggerLevel) {
+            let amountToRefillB1 = Math.max(0, b1TargetDollar - bucket1Balance);
+            if (amountToRefillB1 > 0) {
+                const fromB2Refill = Math.min(amountToRefillB1, bucket2Balance);
+                bucket1Balance += fromB2Refill;
+                bucket2Balance -= fromB2Refill;
+                // ...
+            }
+        }
+        // ... B2 to B3 logic follows
+    }
+    IGNORE_WHEN_COPYING_START
+    content_copy
+    download
+    Use code with caution.
+    JavaScript
+    IGNORE_WHEN_COPYING_END
+
+Assessment: Accurate. If B1 is below the threshold, it's refilled towards its target (b1TargetDollar) using funds only from B2. B3 is not touched for this.
+
+Rule 3b (B2 to B3 Transfer): "After refilling Bucket 1, if Bucket 2 has more than its target, move the extra into Bucket 3." "Again, never sell from Bucket 3 when stocks are down."
+
+Code (within the "Market Down" else block, after B1 refill logic):
+
+    if (bucket2Balance > b2TargetDollar) {
+        const excessB2 = bucket2Balance - b2TargetDollar;
+        bucket2Balance -= excessB2;
+        bucket3Balance += excessB2;
+    }
+    IGNORE_WHEN_COPYING_START
+    content_copy
+    download
+    Use code with caution.
+    JavaScript
+    IGNORE_WHEN_COPYING_END
+
+Assessment: Accurate. After any potential B1 refill from B2, if B2 is now over its target, the excess from B2 is moved to B3. No funds are taken from B3.
+
+Rule 4: If Bonds (and Cash) Run Out:
+
+Rule: "If both Bucket 1 (Cash) and Bucket 2 (Bonds) are empty, you’ll have to start withdrawing directly from Bucket 3 (Stocks)."
+
+Assessment: This is inherently handled by the withdrawal sequence (Point 2). If withdrawalNeeded remains positive after attempting to draw from B1 and B2 (because they are empty or insufficient), the code will proceed to draw from B3. Accurate.
+
+Portfolio Exhaustion:
+
+Code:
+
+    if (withdrawalNeeded > 0 && bucket1Balance + bucket2Balance + bucket3Balance === 0) {
+        // ... set success to false, endingBalance to 0
+        return { ... success: false ... };
+    }
+    IGNORE_WHEN_COPYING_START
+    content_copy
+    download
+    Use code with caution.
+    JavaScript
+    IGNORE_WHEN_COPYING_END
+
+Assessment: Accurate. If a withdrawal cannot be fully covered and all buckets are zero, the simulation run is marked as failed.
+
+Conclusion for Three-Bucket Strategy: The JavaScript code for the Three-Bucket Strategy accurately implements the specified written rules. The logic flows as described.
+
+II. Total Return Strategy
+
+The written rules for the Total Return Strategy are simpler:
+
+Initial Allocation & Target:
+
+Rule: "Stock Allocation (%): ... Bonds get the rest. Rebalanced annually."
+
+Code (Initial):
+
+    let stockBalance = portfolioBalance * params.trStockAllocationRatio;
+    let bondBalance = portfolioBalance * (1 - params.trStockAllocationRatio);
+    IGNORE_WHEN_COPYING_START
+    content_copy
+    download
+    Use code with caution.
+    JavaScript
+    IGNORE_WHEN_COPYING_END
+
+Assessment: Accurate. Portfolio is split based on the initial stock allocation.
+
+Annual Withdrawal:
+
+Rule: Not explicitly stated how withdrawals are sourced before rebalancing.
+
+Code:
+
+    const stockProportion = stockBalance / originalPortfolioBeforeWithdraw;
+    const bondProportion = bondBalance / originalPortfolioBeforeWithdraw;
+    logEntry.stockWithdrawal = yearWithdrawal * stockProportion;
+    logEntry.bondWithdrawal = yearWithdrawal * bondProportion;
+    stockBalance -= logEntry.stockWithdrawal;
+    bondBalance -= logEntry.bondWithdrawal;
+    IGNORE_WHEN_COPYING_START
+    content_copy
+    download
+    Use code with caution.
+    JavaScript
+    IGNORE_WHEN_COPYING_END
+
+Assessment: The code implements proportional withdrawal from stocks and bonds based on their current balances before asset growth for the year. This is a common and reasonable approach for a total return strategy to maintain the allocation approximately, even before the end-of-year rebalance. While not explicitly in the short rule, this is a valid implementation.
+
+Market Growth:
+
+Rule: Implied.
+
+Code:
+
+    stockBalance *= 1 + logEntry.stockReturnPercent;
+    bondBalance *= 1 + logEntry.bondReturnPercent;
+    IGNORE_WHEN_COPYING_START
+    content_copy
+    download
+    Use code with caution.
+    JavaScript
+    IGNORE_WHEN_COPYING_END
+
+Assessment: Accurate.
+
+Annual Rebalancing:
+
+Rule: "Rebalanced annually."
+
+Code (after growth):
+
+    portfolioBalance = stockBalance + bondBalance;
+    if (portfolioBalance > 0) {
+        const targetStock = portfolioBalance * params.trStockAllocationRatio;
+        const targetBond = portfolioBalance * (1 - params.trStockAllocationRatio);
+        stockBalance = targetStock;
+        bondBalance = targetBond;
+    }
+    IGNORE_WHEN_COPYING_START
+    content_copy
+    download
+    Use code with caution.
+    JavaScript
+    IGNORE_WHEN_COPYING_END
+
+Assessment: Accurate. After growth, the total portfolio is re-calculated, and then the stock and bond balances are reset to the target allocation percentages of this new total.
+
+Portfolio Exhaustion:
+
+Code: Includes checks similar to the 3-bucket strategy if portfolioBalance cannot cover yearWithdrawal or becomes zero.
+
+Assessment: Accurate.
+
+Conclusion for Total Return Strategy: The JavaScript code for the Total Return Strategy accurately implements a standard total return approach. The proportional withdrawal method is a common interpretation, and the annual rebalancing is correctly applied.
+
+General Points & No Discrepancies Found:
+
+Inflation: Annual withdrawals are correctly inflated for both strategies: currentAnnualWithdrawal *= 1 + params.inflationRate;.
+
+Parameter Usage: All input parameters (bucket1Years, bucket1RefillThresholdYears, trStockAllocationRatio, etc.) are used as expected within their respective strategies.
+
+Logging: The detailed logging attempts to capture the state at each step, which is valuable for debugging and understanding the median run.
+
+Random Number Generation: The use of mulberry32 with seeding ensures that Monte Carlo simulations are reproducible and that the "median run" detailed log is consistent with the seed identified from the sorted simulation results.
+
+Edge Cases Handled:
+
+Portfolio exhaustion is handled.
+
+Initial balance potentially being less than target bucket sizes is handled by Math.min.
+
+Balances are prevented from going negative using Math.max(0, ...).
+
+Summary of Findings:
+
+I found no discrepancies between the written rules and the code's implementation for either the Three-Bucket Strategy or the Total Return Strategy. The code appears to be a faithful and logical translation of the described methodologies. The Three-Bucket strategy, with its more complex rules, is handled with attention to the conditional logic described. The Total Return strategy follows a standard, well-accepted approach.
