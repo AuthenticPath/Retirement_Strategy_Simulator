@@ -98,12 +98,28 @@
                 <div class="flex-item">
                     <h3>Three-Bucket Strategy</h3>
                     <p class="explanation-text">
-                        <strong>Refill/Rebalancing Rules:</strong><br>
-                        1. Withdrawals occur, then investments grow/shrink. B3 (Stock) return is noted.<br>
-                        2. If B3 (Stocks) had a <strong>positive/zero return</strong>: The total portfolio is re-allocated. B1 is set to its target years of expenses, B2 is set to its target years of expenses, and B3 gets the remainder.<br>
-                        3. If B3 (Stocks) had a <strong>negative return</strong>: B1 is refilled to its target (if below threshold) using funds from B2 ONLY. B3 (Stocks) is NOT sold. Then, B2 rebalancing occurs: if B2 is over target, excess moves to B3; B3 is NOT sold to top up B2.<br>
-                        4. If B2 runs out during multiple negative stock years, B1 may not be fully refilled from B2. Withdrawals will then directly tap B3 if B1&B2 are empty.
+                        <strong>How the Bucket Strategy Refill Rules Work:</strong><br><br>
+                        1. <strong>Each year starts with a withdrawal.</strong><br>
+                        You take out your annual spending money first. After that, the buckets grow or shrink depending on how the market performs. The stock bucket’s (B3) return for the year is used to decide how to refill the buckets.<br><br>
+                        
+                        2. <strong>If stocks went up or stayed flat:</strong><br>
+                        You <em>rebalance the whole portfolio</em>:<br>
+                        – Fill <strong>Bucket 1 (Cash)</strong> to cover your target number of years (e.g., 2 years of expenses).<br>
+                        – Then fill <strong>Bucket 2 (Bonds)</strong> to its target (e.g., 5 years of expenses).<br>
+                        – Put the rest into <strong>Bucket 3 (Stocks)</strong>.<br><br>
+                        
+                        3. <strong>If stocks went down:</strong><br>
+                        You <em>avoid touching stocks</em>:<br>
+                        – First, check if <strong>Bucket 1</strong> is below its minimum threshold. If it is, refill it using <strong>only Bucket 2</strong>.<br>
+                        – Don’t sell stocks to do this.<br>
+                        – After refilling Bucket 1, if <strong>Bucket 2</strong> has more than its target, move the extra into <strong>Bucket 3</strong>.<br>
+                        – Again, <strong>never sell from Bucket 3</strong> when stocks are down.<br><br>
+                    
+                        4. <strong>If bonds run out during a long downturn:</strong><br>
+                        – You may not be able to fully refill cash.<br>
+                        – If both <strong>Bucket 1 (Cash)</strong> and <strong>Bucket 2 (Bonds)</strong> are empty, you’ll have to start withdrawing directly from <strong>Bucket 3 (Stocks)</strong>.
                     </p>
+
                     <label for="bucket1Years">Bucket 1: Target Years of Expenses in Cash
                         <span class="tooltip">?<span class="tooltiptext">How many years of current living expenses to keep in Bucket 1 (cash/equivalents). This is its target size.</span></span>
                     </label>
