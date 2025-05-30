@@ -19,8 +19,7 @@ The rebalancing rules are all about keeping these jars at their desired levels a
 Here's the core rebalancing section from simulateThreeBucketStrategy_Detailed. This happens after you've taken money out for the year's expenses and after each bucket's investments have had their yearly growth (or shrinkage).
 
     // SCENE: End of the year. We've paid our bills (withdrawals are done).
-    // Our Cash Jar (B1), Steady Savers Jar (B2), and Growth Engine Jar (B3)
-    // have all seen some action from market returns.
+    // Our Cash Jar (B1), Steady Savers Jar (B2), and Growth Engine Jar (B3) have all seen some action from market returns.
     // `b3MarketReturnThisYear` tells us if our Growth Engine Jar (B3 - Stocks) had a good year (positive return) or a bad year (negative return).
     // This is a VERY important piece of information for our decisions!
     
@@ -172,7 +171,7 @@ Here's the part of the code in simulateTotalReturnStrategy_Detailed that handles
     // First, a common-sense check: Is there any money left in the portfolio?
     // If the portfolio balance is zero (or less, which shouldn't happen but good to be safe),
     // there's nothing to rebalance! So, we only do the next steps if there's money.
-    // if (portfolioBalance > 0) {
+// if (portfolioBalance > 0) {
 
     // GOAL: We want our stocks to be, say, 60% of our total money,
     // and bonds to be 40%. This is our "target allocation".
@@ -223,7 +222,8 @@ Here's the part of the code in simulateTotalReturnStrategy_Detailed that handles
     // And that's it! Our portfolio is now perfectly back to our desired 60/40 (or whatever) split.
     // We've "taken profits" from the asset that did well and "bought the dip" in the asset that did less well,
     // bringing everything back in line.
-    }
+}
+    
     // If the `if (portfolioBalance > 0)` was false, all these steps are skipped.
 
 
